@@ -1,15 +1,16 @@
+# Dockerfile
 FROM redis:7.0-alpine
 
-# Creamos directorio para el ACL
-RUN mkdir -p /etc/redis
+# 1) Define un argumento de build para la contraseña
+ARG REDIS_PASSWORD=TuContrasenaSecreta
+ENV REDIS_PASSWORD=${REDIS_PASSWORD}
 
-# Copiamos el entrypoint personalizado
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# 2) Crea un pequeño redis.conf con la directiva requirepass
+RUN mkdir -p /usr/local/etc/redis \
+ && printf "requirepass ${REDIS_PASSWORD}\n" > /usr/local/etc/redis/redis.conf
 
-# Exponemos el puerto por defecto
+# 3) Expone el puerto por defecto
 EXPOSE 6379
 
-# Usamos nuestro entrypoint y luego el comando por defecto
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["redis-server"]
+# 4) Arranca Redis usando nuestra configuración
+CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
