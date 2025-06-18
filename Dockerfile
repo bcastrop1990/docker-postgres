@@ -1,22 +1,15 @@
-# Usamos la imagen oficial de Redis Alpine
 FROM redis:7.0-alpine
 
-# Argumento para la contraseña
-ARG REDIS_PASSWORD=TuContrasenaSecreta
+# Creamos directorio para el ACL
+RUN mkdir -p /etc/redis
 
-# Creamos carpeta de configuración y generamos archivo ACL
-RUN mkdir -p /usr/local/etc/redis \
- && printf "user default on >${REDIS_PASSWORD} ~* +@all\n" \
-    > /usr/local/etc/redis/users.acl
+# Copiamos el entrypoint personalizado
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Exponemos el puerto por defecto de Redis
+# Exponemos el puerto por defecto
 EXPOSE 6379
 
-# Arrancamos Redis:
-#  - cargando el ACL
-#  - bindear a 0.0.0.0 (todas las interfaces)
-#  - deshabilitar protected-mode (para aceptar conexiones externas)
-CMD ["redis-server", \
-     "--aclfile", "/usr/local/etc/redis/users.acl", \
-     "--bind", "0.0.0.0", \
-     "--protected-mode", "no"]
+# Usamos nuestro entrypoint y luego el comando por defecto
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["redis-server"]
