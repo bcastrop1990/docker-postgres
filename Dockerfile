@@ -1,15 +1,15 @@
-# Usa la imagen oficial de Postgres
-FROM postgres:17
+# Usamos la imagen oficial de Redis Alpine
+FROM redis:7.0-alpine
 
-# Variables por defecto (puedes sobreescribirlas en Render)
-ENV POSTGRES_USER=test
-ENV POSTGRES_PASSWORD=Plani11as
-ENV POSTGRES_DB=test
+# Nombre de argumento para inyectar la contraseña en tiempo de build (puedes cambiarla al construir)
+ARG REDIS_PASSWORD=TuContrasenaSecreta
 
+# Creamos carpeta de configuración y generamos el archivo ACL
+RUN mkdir -p /usr/local/etc/redis \
+ && printf "user default on >${REDIS_PASSWORD} ~* +@all\n" > /usr/local/etc/redis/users.acl
 
-# Expon el puerto que Render usará para health checks
-EXPOSE 5432
+# Exponemos el puerto por defecto de Redis
+EXPOSE 6379
 
-# Healthcheck: verifica con pg_isready via TCP/Unix socket
-HEALTHCHECK --interval=10s --timeout=5s --start-period=30s \
-  CMD pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" || exit 1
+# Arrancamos Redis indicando el archivo de ACL que fija la contraseña del user 'default'
+CMD ["redis-server", "--aclfile", "/usr/local/etc/redis/users.acl"]
