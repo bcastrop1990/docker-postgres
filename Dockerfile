@@ -1,16 +1,16 @@
 # Dockerfile
+# 1. Partimos de la imagen oficial de Redis Alpine
 FROM redis:7.0-alpine
 
-# 1) Define un argumento de build para la contraseña
-ARG REDIS_PASSWORD=TuContrasenaSecreta
-ENV REDIS_PASSWORD=${REDIS_PASSWORD}
+# 2. Definimos un ARG que podrás inyectar desde Render (en Settings → Environment)
+ARG REDIS_PASSWORD
 
-# 2) Crea un pequeño redis.conf con la directiva requirepass
+# 3. Creamos un fichero de configuración mínimo con requirepass
 RUN mkdir -p /usr/local/etc/redis \
  && printf "requirepass ${REDIS_PASSWORD}\n" > /usr/local/etc/redis/redis.conf
 
-# 3) Expone el puerto por defecto
+# 4. Exponemos el puerto estándar de Redis
 EXPOSE 6379
 
-# 4) Arranca Redis usando nuestra configuración
+# 5. Arrancamos Redis usando nuestro fichero de configuración
 CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
